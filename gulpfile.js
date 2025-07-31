@@ -6,7 +6,7 @@ function css( done ) {
     //Paso 1 - Identificar hoja de archivo, 2 - Compilarla, 3 - Guardar el .css
 
     src('src/scss/app.scss')
-    .pipe( sass() )
+    .pipe( sass({ outputStyle: 'compressed'}) )
     .pipe( dest('build/css') )
 
     done();
