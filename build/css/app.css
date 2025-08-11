@@ -5,4 +5,6 @@ body {
 h1 {
   color: green;
   font-size: 4rem;
+  display: -ms-flexbox;
+  display: flex;
 }
