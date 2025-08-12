@@ -1,4 +1,4 @@
-const { src, dest, watch } = require('gulp'); //Con llaves exporta varias funciones
+const { src, dest, watch, parallel, series } = require('gulp'); //Con llaves exporta varias funciones
 const sass  = require('gulp-sass')(require('sass')); //Sin llave exporta una función 
 const postcss = require('gulp-postcss');
 const autoprefixer = require ('autoprefixer');
@@ -18,8 +18,13 @@ function css( done ) {
 }
 
 function dev() {
-    watch('src/scss/app.scss', css);
+    watch('src/scss/**/*.scss', css);
 }
 
 exports.css = css;
 exports.dev = dev;
+exports.default = series( css, dev );
+
+// series - Se inicia una tarea y hasta que finaliza, inicia la siguiente
+
+// parallel - Todas se inician al mismo tiempo

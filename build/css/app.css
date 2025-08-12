@@ -1,10 +1,20 @@
+.header {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav {
+  background-color: blue;
+}
+
+h1 {
+  color: red;
+}
+
 body {
   background-color: blue;
 }
 
 h1 {
   color: green;
-  font-size: 4rem;
-  display: -ms-flexbox;
-  display: flex;
 }
