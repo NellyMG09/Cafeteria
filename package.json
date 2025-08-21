@@ -15,7 +15,9 @@
   "devDependencies": {
     "autoprefixer": "^10.4.21",
     "gulp": "^5.0.1",
-    "gulp-postcss": "^10.0.0"
+    "gulp-imagemin": "^7.1.0",
+    "gulp-postcss": "^10.0.0",
+    "gulp-webp": "^5.0.0"
   },
   "dependencies": {
     "gulp-sass": "^6.0.1",
