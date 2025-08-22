@@ -366,7 +366,11 @@ h3 {
 }
 
 .header {
-  color: black;
+  padding: 5rem 0;
+}
+
+.header-inicio {
+  background-image: url(../img/header_inicio.jpg);
 }
 
 .navegacion {

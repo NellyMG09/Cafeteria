@@ -15,13 +15,17 @@
   "devDependencies": {
     "autoprefixer": "^10.4.21",
     "gulp": "^5.0.1",
+    "gulp-avif": "^1.1.1",
     "gulp-imagemin": "^7.1.0",
     "gulp-postcss": "^10.0.0",
-    "gulp-webp": "^5.0.0"
-  },
-  "dependencies": {
+    "gulp-rename": "^2.1.0",
     "gulp-sass": "^6.0.1",
-    "sass": "^1.89.2"
+    "gulp-webp": "^5.0.0",
+    "imagemin-mozjpeg": "^10.0.0",
+    "imagemin-optipng": "^8.0.0",
+    "imagemin-svgo": "^11.0.1",
+    "imagemin-webp": "^8.0.0",
+    "sass": "^1.90.0"
   },
   "browserslist": [
     "last 1 version",
