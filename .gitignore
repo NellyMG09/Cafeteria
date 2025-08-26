@@ -1,0 +1,10 @@
+# Dependencias
+node_modules/
+
+# Build
+dist/
+build/
+
+# Configs locales
+.env
+.vscode/
