@@ -1,55 +1,108 @@
-const { src, dest, watch, parallel, series } = require('gulp'); //Con llaves exporta varias funciones
-const sass  = require('gulp-sass')(require('sass')); //Sin llave exporta una función 
+// ------------------------------------------------------
+// Gulpfile simple: JPG/PNG -> optimiza, WebP, AVIF
+// SVG -> optimiza
+// CSS (SCSS -> CSS)
+// `gulp` = modo watch (se queda ejecutando)
+// ------------------------------------------------------
+const { src, dest, watch, series, parallel } = require('gulp');
+const sass  = require('gulp-sass')(require('sass'));
 const postcss = require('gulp-postcss');
-const autoprefixer = require ('autoprefixer');
+const autoprefixer = require('autoprefixer');
+const through2 = require('through2');
+const sharp = require('sharp');
 
-//Imagenes
 const imagemin = require('gulp-imagemin');
+let mozjpeg = require('imagemin-mozjpeg');  mozjpeg = mozjpeg.default || mozjpeg;
+let optipng = require('imagemin-optipng');  optipng = optipng.default || optipng;
+const svgmin = require('gulp-svgmin');
 
-let webp = require('gulp-webp')
-webp = webp.default || webp
+const IMG_RASTER_GLOB = 'src/img/**/*.{jpg,jpeg,png,JPG,JPEG,PNG}';
+const IMG_SVG_GLOB    = 'src/img/**/*.svg';
 
-const avif = require('gulp-avif');
-
+// ---------- tareas ----------
 function css() {
-    //compilar sass
-    //Paso 1 - Identificar hoja de archivo, 2 - Compilarla, 3 - Guardar el .css
-    return src('src/scss/app.scss')
+  return src('src/scss/app.scss', { allowEmpty: true })
     .pipe(sass())
     .pipe(postcss([autoprefixer()]))
-    .pipe(dest('build/css'))
+    .pipe(dest('build/css'));
 }
 
+// JPG/PNG optimizados -> build/img
 function imagenes() {
-    return src('src/img/**/*')
-    .pipe( imagemin({ optimizationLevel: 3 }) )
-    .pipe( dest('build/img') );
+  return src(IMG_RASTER_GLOB, { allowEmpty: true })
+    .pipe(imagemin([
+      mozjpeg({ quality: 78, progressive: true }),
+      optipng({ optimizationLevel: 5 }),
+    ]))
+    .pipe(dest('build/img'));
 }
 
+// SVG optimizados -> build/img
+function svg() {
+  return src(IMG_SVG_GLOB, { allowEmpty: true })
+    .pipe(svgmin({
+      multipass: true,
+      plugins: [
+        { name: 'removeDimensions', active: false },
+        { name: 'removeViewBox', active: false },
+      ],
+    }))
+    .pipe(dest('build/img'));
+}
+
+// WebP con sharp (lee desde disco) -> build/img-webp
 function versionWebp() {
-    return src('src/img/**/*.{png,jpg}')
-     .pipe(webp())
-     .pipe(dest('build/img'))
+  return src(IMG_RASTER_GLOB, { allowEmpty: true, buffer: false })
+    .pipe(through2.obj(async function (file, _, cb) {
+      try {
+        const out = await sharp(file.path).webp({ quality: 78 }).toBuffer();
+        file.contents = out;
+        file.extname = '.webp';
+        cb(null, file);
+      } catch {
+        cb(); // salta archivo si falla
+      }
+    }))
+    .pipe(dest('build/img-webp'));
 }
 
+// AVIF con sharp (lee desde disco) -> build/img-avif
 function versionAvif() {
-    return src('src/img/**/*.{png,jpg}')
-       .pipe(webp({avif: true})) //converte a AVIF con gulp-webp
-       .pipe(dest('build/img'))
+  return src(IMG_RASTER_GLOB, { allowEmpty: true, buffer: false })
+    .pipe(through2.obj(async function (file, _, cb) {
+      try {
+        const out = await sharp(file.path)
+          .avif({ quality: 62, effort: 4, chromaSubsampling: '4:4:4' })
+          .toBuffer();
+        file.contents = out;
+        file.extname = '.avif';
+        cb(null, file);
+      } catch {
+        cb(); // salta archivo si falla
+      }
+    }))
+    .pipe(dest('build/img-avif'));
 }
 
+// Agrupadores
+const buildImages = parallel(imagenes, svg, versionWebp, versionAvif);
+const buildAll    = series(buildImages, css);
+
+// Watch (queda en ejecución)
 function dev() {
-    watch('src/scss/**/*.scss', css);
-    watch('src/img/**/*',series(imagenes, versionWebp, versionAvif));
+  // primera compilación
+  buildAll(() => {});
+  // observa cambios
+  watch('src/scss/**/*.scss', css);
+  watch([IMG_RASTER_GLOB, IMG_SVG_GLOB], buildImages);
 }
 
+// exports
 exports.css = css;
-exports.dev = dev;
 exports.imagenes = imagenes;
+exports.svg = svg;
 exports.versionWebp = versionWebp;
 exports.versionAvif = versionAvif;
-exports.default = series(imagenes, versionWebp, versionAvif, css, dev);
-
-// series - Se inicia una tarea y hasta que finaliza, inicia la siguiente
-
-// parallel - Todas se inician al mismo tiempo
+exports.build = buildAll;
+exports.dev = dev;
+exports.default = dev; // ← `gulp` se queda ejecutando
